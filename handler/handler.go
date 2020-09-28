@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"03_gin_filestore_own/meta"
-	"03_gin_filestore_own/utils"
+	"03_gin_filestore_own/file_store_net_http/meta"
+	"03_gin_filestore_own/file_store_net_http/utils"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -60,6 +60,6 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 
 		//TODO: 计算文件签名比较耗时, 之后可抽取做成微服务;
 		newFile.Seek(0,0)
-		fmeta.FileSha1 = utils.FileSsha1(newFile)
+		//fmeta.FileSha1 = utils.FileSsha1(newFile)
 	}
 }

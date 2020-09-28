@@ -1,3 +1,3 @@
-module 03_gin_filestore_own
+module file_store_net_http
 
 go 1.14

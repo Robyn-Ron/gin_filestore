@@ -1,0 +1,29 @@
+经测试：MAC OS环境下一直没有运行成功
+
+1. 运行mysql容器的命令为:
+    (1)master节点: docker run --name mysql-master -p 3307:3306 -v /Users/raehowe/Desktop/GoWorkspace/src/CloudWebOfGin/docker/mysql-master/data/:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 -d mysql
+    (2)slav e节点:  docker run --name mysql-slave  -p 3308:3306 -v /Users/raehowe/Desktop/GoWorkspace/src/CloudWebOfGin/docker/mysql-slave/data/:/var/lib/mysql -e  MYSQL_ROOT_PASSWORD=123456 -d mysql
+2. mysql容器内部:
+    (1)执行apt update 更新软件源信息
+    (2)执行apt install net-tools 支持执行ifconfig命令来查看IP地址
+3. mysql主从配置：
+    (1)在主节点上面通过命令show master status 来查看binlog的游标信息:
+        +---------------+----------+--------------+------------------+-------------------+
+        | File          | Position | Binlog_Do_DB | Binlog_Ignore_DB | Executed_Gtid_Set |
+        +---------------+----------+--------------+------------------+-------------------+
+        |mysql-bin.000001|     156 |              |                  |                   |
+        +---------------+----------+--------------+------------------+-------------------+
+    (2)在主节点上面创建mysql用户： CREATE USER 'RAEHOWE'@'%' IDENTIFIED BY 'HAO930826';
+        分配可以复制的权限： GRANT REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO 'RAEHOWE'@'%';
+        刷新：flush privileges;
+    (3)在从节点上面执行命令：CHANGE MASTER TO MASTER_HOST='172.17.0.2', MASTER_PORT=3306, MASTER_USER='RAEHOWE',
+        MASTER_PASSWORD='HAO930826!@##@!', MASTER_LOG_FILE='binlog.000002',MASTER_LOG_POS=1607;
+    (4)在从节点上面执行命令：START SLAVE;
+    (5)在从节点上面执行命令查看slave节点的状态: SHOW SLAVE STATUS\G;
+    (6)停止slave 的复制线程(I/O线程，SQL线程)命令：STOP SLAVE IO_THREAD FOR CHANNEL '';
+
+
+    ##########################
+    docker run --name mysql-master -p 3307:3306 -v /Users/raehowe/Desktop/GoWorkspace/src/CloudWebOfGin/docker/mysql-master/data:/var/lib/mysql -v /Users/raehowe/Desktop/GoWorkspace/src/CloudWebOfGin/docker/mysql-master/my.cnf:/etc/mysql/my.cnf -e MYSQL_ROOT_PASSWORD=HAO930826 -d mysql
+
+

@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/03_gin_filestore_own.iml" filepath="$PROJECT_DIR$/.idea/03_gin_filestore_own.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/file_store_net_http.iml" filepath="$PROJECT_DIR$/.idea/file_store_net_http.iml" />
     </modules>
   </component>
 </project>

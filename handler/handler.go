@@ -70,7 +70,10 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		fmeta.FileSha1 = utils.FileSha1(newFile)
 
 		//保存文件在内存中的map[file_hash]FileMeta
-		meta.UpdateFileMeta(fmeta)
+		//meta.UpdateFileMeta(fmeta)
+		//保存文件在DB中
+		meta.UpdateFileMetaDB(fmeta)
+
 		//重定向到上传成功接口
 		http.Redirect(w,r, "/file/upload/suc", http.StatusFound)
 	}
@@ -86,7 +89,8 @@ func GetFileMetaHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	// r.Form属性, 相比于r.FormValue优点在于, 表单中可能用多个同名的数据, 使用前者可以接受多个, 使用后者只能接受最前一个;
 	fileHash := r.Form["filehash"][0]
-	fileMeta := meta.GetFileMeta(fileHash)
+	//fileMeta := meta.GetFileMeta(fileHash)
+	fileMeta, err := meta.GetFileMetaDB(fileHash)
 	data, err := json.Marshal(fileMeta)
 	if err != nil {
 		_, fn, line, _ := runtime.Caller(0)

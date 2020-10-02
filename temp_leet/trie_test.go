@@ -17,8 +17,8 @@ func respace(dictionary []string, sentence string) int {
 	//思路: 字典树+动态规划
 	//字典树: 这个数据结构相比于map, 在比较word的前缀时, 一旦遇到不存在trie中的树的边时, 会及时终止, 而不用把word遍历完;
 	//dp状态转移: min{dp[i-1]+1, dp[j-1](j->i的下标在trie中有匹配的分支)}
-	trie := Trie{
-		next:  [26]*Trie{},
+	trie := RTrie{
+		next:  [26]*RTrie{},
 		isEnd: false,
 	}
 	//初始化字典树
@@ -46,19 +46,19 @@ func respace(dictionary []string, sentence string) int {
 	return dp[len(sentence)]
 }
 
-type Trie struct {
-	next [26]*Trie //next指针数组的长度, 由charset大小决定
+type RTrie struct {
+	next [26]*RTrie //next指针数组的长度, 由charset大小决定
 	isEnd bool //判断是否为
 }
 
 //str倒序插入trie中
-func (this *Trie)insert(str string) {
+func (this *RTrie)insert(str string) {
 	curNode := this
 	for j := len(str) -1; j >= 0; j-- {
 		pos := int(str[j]- 'a')
 		if curNode.next[pos] == nil {
-			curNode.next[pos] = &Trie{
-				next:  [26]*Trie{},
+			curNode.next[pos] = &RTrie{
+				next:  [26]*RTrie{},
 				isEnd: false,
 			}
 		}

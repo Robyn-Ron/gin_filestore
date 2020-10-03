@@ -103,7 +103,7 @@ func GetFileMetaHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// url: /file/multimeta
+// url: /file/query
 func FileQueryHandler(w http.ResponseWriter, r *http.Request) {
 	//获取username
 	//获取limit

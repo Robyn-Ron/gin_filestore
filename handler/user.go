@@ -30,9 +30,10 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 	} else if r.Method == http.MethodPost{
 		r.ParseForm()
 
-		username := r.Form.Get("username")
-		password := r.Form.Get("password")
-		phone := r.Form.Get("phone")
+		//post, get方式获取参数, 最好还是使用推荐的方法, 不要使用Form这种形式;
+		username := r.PostFormValue("username")
+		password := r.PostFormValue("password")
+		phone := r.PostFormValue("phone")
 
 		//密码加salt处理, 存到db中;
 		encrypt_password := utils.Sha1([]byte(password + pwd_salt))

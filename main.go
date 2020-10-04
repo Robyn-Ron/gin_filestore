@@ -26,6 +26,7 @@ import (
 //			<2> 在返回值函数中, 逻辑为: pre处理 + 函数参数调用 + post处理;
 func main() {
 
+	//这些都是要加interceptor, 先验证用户的登录状态, 才提供文件上传/下载服务;
 	http.HandleFunc("/file/upload", handler.UploadHandler)
 	http.HandleFunc("/file/upload/suc", handler.UploadSucHandler)
 	http.HandleFunc("/file/meta", handler.GetFileMetaHandler)
@@ -33,6 +34,7 @@ func main() {
 	http.HandleFunc("/file/download", handler.DownloadHandler)
 	http.HandleFunc("/file/update", handler.FileMetaUpdateHandler)
 	http.HandleFunc("/file/delete", handler.FileDeleteHandler)
+	http.HandleFunc("/file/fastupload", handler.TryFastUploadHandler)
 
 	http.HandleFunc("/user/signup", handler.SignupHandler)
 	http.HandleFunc("/user/signin", handler.SigninHandler)

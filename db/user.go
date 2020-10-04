@@ -17,7 +17,7 @@ func UserSignup(username, encrypt_pasword, phone string) error{
 		log.Println("filename:", fn, " line:", line, " error:", err)
 		return err
 	}
-	s.Close()
+	defer s.Close()
 
 	res, err := s.Exec(username, encrypt_pasword, phone)
 	if err != nil {
@@ -43,7 +43,7 @@ func UserSignin(username, encrypt_password string) error {
 		log.Println("filename:", fn, " line:", line, " error:", err)
 		return err
 	}
-	s.Close()
+	defer s.Close()
 
 	row,err := s.Query(username, encrypt_password)
 	if err != nil {
@@ -68,7 +68,7 @@ func UpdateToken(username, token string) error {
 		log.Println("filename:", fn, " line:", line, " error:", err)
 		return err
 	}
-	s.Close()
+	defer s.Close()
 	res, err := s.Exec(username, token)
 	if err != nil {
 		_, fn, line, _ := runtime.Caller(0)

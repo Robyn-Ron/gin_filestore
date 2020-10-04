@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"file_store_net_http/db"
 	"file_store_net_http/meta"
 	"file_store_net_http/utils"
 	"fmt"
@@ -11,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"time"
 )
 
@@ -38,7 +40,6 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 			_, fn, line, _ := runtime.Caller(0)
 			fmt.Println(fn, "_", line, ", error:", err)
 			w.WriteHeader(http.StatusInternalServerError)
-			io.WriteString(w, "get FormFile error!")
 			return
 		}
 		defer file.Close()
@@ -54,6 +55,9 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			_, fn, line, _:=runtime.Caller(0)
 			fmt.Println(fn, "_", line, ", error:", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			io.WriteString(w, "internal server error")
+			return
 		}
 		defer newFile.Close()
 
@@ -93,9 +97,10 @@ func GetFileMetaHandler(w http.ResponseWriter, r *http.Request) {
 	fileMeta, err := meta.GetFileMetaDB(fileHash)
 	data, err := json.Marshal(fileMeta)
 	if err != nil {
-		_, fn, line, _ := runtime.Caller(0)
+		_, fn, line, _:=runtime.Caller(0)
 		fmt.Println(fn, "_", line, ", error:", err)
 		w.WriteHeader(http.StatusInternalServerError)
+		io.WriteString(w, "internal server error")
 		return
 	}
 	//默认有: w.WriteHeader(http.StatusOK)
@@ -107,7 +112,36 @@ func GetFileMetaHandler(w http.ResponseWriter, r *http.Request) {
 func FileQueryHandler(w http.ResponseWriter, r *http.Request) {
 	//获取username
 	//获取limit
+	r.ParseForm()
+
+	limit, err := strconv.Atoi(r.Form["limit"][0])
+	if err != nil{
+		_, fn, line, _ := runtime.Caller(0)
+		fmt.Println(fn,"_",line,", error:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		io.WriteString(w, "internal server error")
+		return
+	}
+
+	username := r.Form["username"][0]
+
 	//从db中查询fileMeta多个对象信息
+	userFileArray, err := db.QueryUserFileMetas(username, limit)
+	if err != nil{
+		_, fn, line, _ := runtime.Caller(0)
+		fmt.Println(fn,"_",line,", error:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		io.WriteString(w, "internal server error")
+		return
+	}
+
+	res := utils.RespMes{
+		Code: 0,
+		Msg: "success",
+		Data: userFileArray,
+	}
+
+	w.Write(res.JsonBytes())
 	//构建RespMsg, 返回前端
 }
 
@@ -123,6 +157,7 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 		_, fn, line, _ := runtime.Caller(0)
 		fmt.Println(fn,"_",line,", error:", err)
 		w.WriteHeader(http.StatusInternalServerError)
+		io.WriteString(w, "internal server error")
 		return
 	}
 
@@ -157,7 +192,10 @@ func FileMetaUpdateHandler(w http.ResponseWriter, r *http.Request) {
 
 	data, err := json.Marshal(curFileMeta)
 	if err != nil{
+		_, fn, line, _ := runtime.Caller(0)
+		fmt.Println(fn,"_",line,", error:", err)
 		w.WriteHeader(http.StatusInternalServerError)
+		io.WriteString(w, "internal server error")
 		return
 	}
 
@@ -176,4 +214,57 @@ func FileDeleteHandler(w http.ResponseWriter, r *http.Request) {
 
 	meta.RemoveFileMeta(fileSha1)
 	w.WriteHeader(http.StatusOK)
+}
+
+// url: /file/fastupload
+func TryFastUploadHandler(w http.ResponseWriter, r *http.Request) {
+	//TODO:1.解析请求参数
+	r.ParseForm()
+
+	username := r.Form.Get("username")
+	filehash := r.Form.Get("filehash")
+	filename := r.Form.Get("filename")
+	filesize, err := strconv.Atoi(r.Form.Get("filesize"))
+	if err != nil{
+		_, fn, line, _ := runtime.Caller(0)
+		fmt.Println(fn,"_",line,", error:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		io.WriteString(w, "internal server error")
+		return
+	}
+	//todo: 2. 在FileMeta中查找是否存在此文件
+	fileMeta,err := meta.GetFileMetaDB(filehash)
+	if err != nil {
+		_, fn, line, _ := runtime.Caller(0)
+		fmt.Println(fn, "_", line, ", error:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		io.WriteString(w, "internal server error")
+		return
+	}
+	if fileMeta == nil {
+		res := utils.RespMes{
+			Code: -1,
+			Msg:  "妙传失败,请访问普通upload上传文件;",
+			Data: nil,
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(res.JsonBytes())
+		return
+	}
+
+	//todo: 3. 如果不存在, 返回失败; 如果存在, 在user_file中添加元组;
+	err = db.OnUserFileUploadFinished(username, filehash, filename, int64(filesize))
+	if err != nil{
+		_, fn, line, _ := runtime.Caller(0)
+		fmt.Println(fn, "_", line, ", error:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		io.WriteString(w, "internal server error")
+		return
+	}
+	res := utils.RespMes{
+		Code: 0,
+		Msg:  "秒传成功",
+		Data: nil,
+	}
+	w.Write(res.JsonBytes())
 }

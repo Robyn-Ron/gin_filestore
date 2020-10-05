@@ -36,6 +36,11 @@ func main() {
 	http.HandleFunc("/file/delete", handler.FileDeleteHandler)
 	http.HandleFunc("/file/fastupload", handler.TryFastUploadHandler)
 
+	//这个handler对应的处理请求, 来自于client端;
+	http.HandleFunc("/file/mpupload/init", handler.HTTPInterceptor(handler.InitialMultipartUploadHandler))
+	http.HandleFunc("/file/mpupload/uppart", handler.HTTPInterceptor(handler.UploadPartHandler))
+	http.HandleFunc("/file/mpupload/complete", handler.HTTPInterceptor(handler.CompleteUploadHandler))
+
 	http.HandleFunc("/user/signup", handler.SignupHandler)
 	http.HandleFunc("/user/signin", handler.SigninHandler)
 	http.HandleFunc("/user/info", handler.HTTPInterceptor(handler.UserinfoHandler))

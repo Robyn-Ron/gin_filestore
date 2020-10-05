@@ -5,9 +5,9 @@ import (
 	"file_store_net_http/db"
 	"file_store_net_http/meta"
 	"file_store_net_http/utils"
-	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -25,7 +25,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		data, err := ioutil.ReadFile(f)
 		if err != nil{
 			_, fn, line, _ := runtime.Caller(0)
-			fmt.Println(fn, "_", line, ", error:", err)
+			log.Println(fn, "_", line, ", error:", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			io.WriteString(w, "internal server error")
 			return
@@ -38,7 +38,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		file, head, err := r.FormFile("file")
 		if err != nil {
 			_, fn, line, _ := runtime.Caller(0)
-			fmt.Println(fn, "_", line, ", error:", err)
+			log.Println(fn, "_", line, ", error:", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -54,7 +54,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		newFile, err := os.Create(fmeta.Location)
 		if err != nil {
 			_, fn, line, _:=runtime.Caller(0)
-			fmt.Println(fn, "_", line, ", error:", err)
+			log.Println(fn, "_", line, ", error:", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			io.WriteString(w, "internal server error")
 			return
@@ -65,7 +65,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		fmeta.FileSize, err = io.Copy(newFile, file)
 		if err != nil {
 			_, fn, line, _:=runtime.Caller(0)
-			fmt.Println(fn, "_", line, ", error:", err)
+			log.Println(fn, "_", line, ", error:", err)
 		}
 
 		//TODO: 计算文件签名比较耗时, 之后可抽取做成微服务;
@@ -98,7 +98,7 @@ func GetFileMetaHandler(w http.ResponseWriter, r *http.Request) {
 	data, err := json.Marshal(fileMeta)
 	if err != nil {
 		_, fn, line, _:=runtime.Caller(0)
-		fmt.Println(fn, "_", line, ", error:", err)
+		log.Println(fn, "_", line, ", error:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, "internal server error")
 		return
@@ -117,7 +117,7 @@ func FileQueryHandler(w http.ResponseWriter, r *http.Request) {
 	limit, err := strconv.Atoi(r.Form["limit"][0])
 	if err != nil{
 		_, fn, line, _ := runtime.Caller(0)
-		fmt.Println(fn,"_",line,", error:", err)
+		log.Println(fn,"_",line,", error:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, "internal server error")
 		return
@@ -129,7 +129,7 @@ func FileQueryHandler(w http.ResponseWriter, r *http.Request) {
 	userFileArray, err := db.QueryUserFileMetas(username, limit)
 	if err != nil{
 		_, fn, line, _ := runtime.Caller(0)
-		fmt.Println(fn,"_",line,", error:", err)
+		log.Println(fn,"_",line,", error:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, "internal server error")
 		return
@@ -155,7 +155,7 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 	respFileContent,err := ioutil.ReadFile(metaFile.Location)
 	if err != nil {
 		_, fn, line, _ := runtime.Caller(0)
-		fmt.Println(fn,"_",line,", error:", err)
+		log.Println(fn,"_",line,", error:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, "internal server error")
 		return
@@ -193,7 +193,7 @@ func FileMetaUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	data, err := json.Marshal(curFileMeta)
 	if err != nil{
 		_, fn, line, _ := runtime.Caller(0)
-		fmt.Println(fn,"_",line,", error:", err)
+		log.Println(fn,"_",line,", error:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, "internal server error")
 		return
@@ -227,7 +227,7 @@ func TryFastUploadHandler(w http.ResponseWriter, r *http.Request) {
 	filesize, err := strconv.Atoi(r.Form.Get("filesize"))
 	if err != nil{
 		_, fn, line, _ := runtime.Caller(0)
-		fmt.Println(fn,"_",line,", error:", err)
+		log.Println(fn,"_",line,", error:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, "internal server error")
 		return
@@ -236,7 +236,7 @@ func TryFastUploadHandler(w http.ResponseWriter, r *http.Request) {
 	fileMeta,err := meta.GetFileMetaDB(filehash)
 	if err != nil {
 		_, fn, line, _ := runtime.Caller(0)
-		fmt.Println(fn, "_", line, ", error:", err)
+		log.Println(fn, "_", line, ", error:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, "internal server error")
 		return
@@ -256,7 +256,7 @@ func TryFastUploadHandler(w http.ResponseWriter, r *http.Request) {
 	err = db.OnUserFileUploadFinished(username, filehash, filename, int64(filesize))
 	if err != nil{
 		_, fn, line, _ := runtime.Caller(0)
-		fmt.Println(fn, "_", line, ", error:", err)
+		log.Println(fn, "_", line, ", error:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, "internal server error")
 		return
